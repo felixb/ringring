@@ -21,18 +21,26 @@ package de.ub0r.android.ringring;
 import java.util.ArrayList;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ListActivity;
+import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 /**
@@ -42,6 +50,9 @@ import android.widget.AdapterView.OnItemClickListener;
  */
 public class Preferences extends ListActivity implements OnClickListener,
 		OnItemClickListener {
+
+	/** Dialog: about. */
+	private static final int DIALOG_ABOUT = 0;
 
 	/** Preference's name: data. */
 	public static final String PREFS_DATA = "data";
@@ -70,6 +81,57 @@ public class Preferences extends ListActivity implements OnClickListener,
 
 		this.findViewById(R.id.add).setOnClickListener(this);
 		this.findViewById(R.id.ok).setOnClickListener(this);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final boolean onCreateOptionsMenu(final Menu menu) {
+		MenuInflater inflater = this.getMenuInflater();
+		inflater.inflate(R.menu.menu, menu);
+		return true;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final boolean onOptionsItemSelected(final MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.item_about: // start about dialog
+			this.showDialog(DIALOG_ABOUT);
+			return true;
+		case R.id.item_more:
+			try {
+				this.startActivity(new Intent(Intent.ACTION_VIEW, Uri
+						.parse("market://search?q=pub:\"Felix Bechstein\"")));
+			} catch (ActivityNotFoundException e) {
+				Toast.makeText(this, "missing market application",
+						Toast.LENGTH_LONG).show();
+			}
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected final Dialog onCreateDialog(final int id) {
+		Dialog d;
+		switch (id) {
+		case DIALOG_ABOUT:
+			d = new Dialog(this);
+			d.setContentView(R.layout.about);
+			d.setTitle(this.getString(R.string.about_) + " v"
+					+ this.getString(R.string.app_version));
+			return d;
+		default:
+			return null;
+		}
 	}
 
 	/**
