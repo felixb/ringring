@@ -31,11 +31,15 @@
 			android:layout_width="fill_parent" android:layout_height="wrap_content"
 			android:layout_weight="1" />
 	</LinearLayout>
-	<CheckBox android:id="@+id/enable" android:layout_width="fill_parent"
-		android:layout_height="wrap_content" android:text="@string/enable_" />
+	<LinearLayout android:id="@+id/enablelayout"
+		android:layout_width="fill_parent" android:layout_height="wrap_content"
+		style="@android:style/ButtonBar">
+		<CheckBox android:id="@+id/enable" android:layout_width="fill_parent"
+			android:layout_height="wrap_content" android:text="@string/enable_" />
+	</LinearLayout>
 	<RelativeLayout android:layout_width="fill_parent"
 		android:layout_height="fill_parent" android:layout_above="@id/ok_add"
-		android:layout_below="@id/enable">
+		android:layout_below="@id/enablelayout">
 		<ListView android:id="@id/android:list" android:layout_width="fill_parent"
 			android:layout_height="fill_parent" android:drawSelectorOnTop="false"
 			android:scrollingCache="true" android:fastScrollEnabled="true"
