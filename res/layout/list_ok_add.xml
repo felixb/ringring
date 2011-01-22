@@ -31,12 +31,17 @@
 			android:layout_width="fill_parent" android:layout_height="wrap_content"
 			android:layout_weight="1" />
 	</LinearLayout>
+
 	<LinearLayout android:id="@+id/enablelayout"
 		android:layout_width="fill_parent" android:layout_height="wrap_content"
-		style="@android:style/ButtonBar">
-		<CheckBox android:id="@+id/enable" android:layout_width="fill_parent"
-			android:layout_height="wrap_content" android:text="@string/enable_" />
+		style="@android:style/ButtonBar" android:orientation="vertical">
+		<TextView android:layout_width="fill_parent"
+			android:layout_height="wrap_content" android:text="@string/mode_"
+			android:textColor="#FFEFEFEF" android:textStyle="bold" />
+		<Spinner android:id="@+id/mode" android:layout_width="fill_parent"
+			android:layout_height="wrap_content" />
 	</LinearLayout>
+
 	<RelativeLayout android:layout_width="fill_parent"
 		android:layout_height="fill_parent" android:layout_above="@id/ok_add"
 		android:layout_below="@id/enablelayout">

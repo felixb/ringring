@@ -28,6 +28,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -38,10 +39,11 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
+import de.ub0r.android.lib.Log;
 
 /**
  * Set up RingRing.
@@ -56,8 +58,24 @@ public class Preferences extends ListActivity implements OnClickListener,
 
 	/** Preference's name: data. */
 	public static final String PREFS_DATA = "data";
-	/** Preference's name: enable. */
-	public static final String PREFS_ENABLE = "enable";
+	/** Preference's name: mode. */
+	public static final String PREFS_MODE = "mode";
+	/** Available modes. */
+	public static final int[] ringModes = new int[] {
+			AudioManager.RINGER_MODE_NORMAL, AudioManager.RINGER_MODE_NORMAL,
+			AudioManager.RINGER_MODE_VIBRATE, AudioManager.RINGER_MODE_SILENT,
+			-1 };
+	/** Available modes. */
+	public static final int[] vibrateModes = new int[] {
+			AudioManager.VIBRATE_SETTING_ON, AudioManager.VIBRATE_SETTING_OFF,
+			AudioManager.VIBRATE_SETTING_ON, AudioManager.VIBRATE_SETTING_OFF,
+			-1 };
+	/** Array of String Resources for modes. */
+	private static final Integer[] resModes = new Integer[] {
+			R.string.ringvibrate, R.string.ring, R.string.vibrate,
+			R.string.silent, R.string.disable };
+	/** Array of String Resources for modes. */
+	private static final String[] strModes = new String[resModes.length];
 	/** Preference's separator. */
 	public static final String SEP = "~#~";
 
@@ -66,12 +84,16 @@ public class Preferences extends ListActivity implements OnClickListener,
 	/** Adapter representing the objects. */
 	ArrayAdapter<String> adapter = null;
 
+	/** {@link Spinner} holding modes. */
+	private Spinner spModes = null;
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public void onCreate(final Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.init(this.getString(R.string.app_name));
 		this.setContentView(R.layout.list_ok_add);
 		this.adapter = new ArrayAdapter<String>(this,
 				android.R.layout.simple_list_item_1, this.objects);
@@ -81,6 +103,14 @@ public class Preferences extends ListActivity implements OnClickListener,
 
 		this.findViewById(R.id.add).setOnClickListener(this);
 		this.findViewById(R.id.ok).setOnClickListener(this);
+		final int l = resModes.length;
+		for (int i = 0; i < l; i++) {
+			strModes[i] = this.getString(resModes[i]);
+		}
+
+		this.spModes = (Spinner) this.findViewById(R.id.mode);
+		this.spModes.setAdapter(new ArrayAdapter<String>(this,
+				android.R.layout.simple_spinner_item, strModes));
 	}
 
 	/**
@@ -142,8 +172,12 @@ public class Preferences extends ListActivity implements OnClickListener,
 		super.onResume();
 		final SharedPreferences p = PreferenceManager
 				.getDefaultSharedPreferences(this);
-		((CheckBox) this.findViewById(R.id.enable)).setChecked(p.getBoolean(
-				PREFS_ENABLE, true));
+		final int mode = p.getInt(PREFS_MODE, 0);
+		if (mode >= 0 && mode < vibrateModes.length) {
+			this.spModes.setSelection(mode);
+		} else {
+			this.spModes.setSelection(0);
+		}
 		final String s = p.getString(PREFS_DATA, "");
 		this.objects.clear();
 		if (s != null && s.length() > 0) {
@@ -180,8 +214,7 @@ public class Preferences extends ListActivity implements OnClickListener,
 		}
 		sb.append(SEP);
 		e.putString(PREFS_DATA, sb.toString());
-		e.putBoolean(PREFS_ENABLE, ((CheckBox) this.findViewById(R.id.enable))
-				.isChecked());
+		e.putInt(PREFS_MODE, this.spModes.getSelectedItemPosition());
 		e.commit();
 	}
 

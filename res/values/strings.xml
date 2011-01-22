@@ -35,7 +35,12 @@
 	<string name="add_">Add</string>
 	<string name="add_number">Add number</string>
 	<string name="list_empty" formatted="false">Add numbers to the list to force the phone ring loud if they call.\n\nWildcards \'%\' are supported at both ends of the number (e.g. %23% matches 12345).</string>
-	<string name="enable_">Ring loud if one of these numbers is calling.</string>
+	<string name="mode_">Set mode when one of these numbers is calling:</string>
+	<string name="ringvibrate">Ring + Vibrate</string>
+	<string name="ring">Ring</string>
+	<string name="vibrate">Vibrate</string>
+	<string name="silent">Silent</string>
+	<string name="disable">Nothing</string>
 	<string-array name="edit_delete">
 		<item>Edit</item>
 		<item>Delete</item>

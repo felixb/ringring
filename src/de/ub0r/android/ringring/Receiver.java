@@ -18,13 +18,19 @@
  */
 package de.ub0r.android.ringring;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
 import android.preference.PreferenceManager;
+import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
+import de.ub0r.android.lib.Log;
 
 /**
  * Act on incoming Calls.
@@ -32,27 +38,73 @@ import android.telephony.TelephonyManager;
  * @author flx
  */
 public class Receiver extends BroadcastReceiver {
+	/** Tag for log output. */
+	private static final String TAG = "bc";
+
+	/** Preference's name to switch back. */
+	private static final String PREFS_NORMAL_RING = "normal_mode_ring";
+	/** Preference's name to switch back. */
+	private static final String PREFS_NORMAL_VIBRATE = "normal_mode_vibrate";
+
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public void onReceive(final Context context, final Intent intent) {
+		Log.init(context.getString(R.string.app_name));
+		Log.d(TAG, "onReceive()");
+		final SharedPreferences p = PreferenceManager
+				.getDefaultSharedPreferences(context);
 		final String state = intent
 				.getStringExtra(TelephonyManager.EXTRA_STATE);
 		if (state == null
 				|| !state.equals(TelephonyManager.EXTRA_STATE_RINGING)) {
+			Log.d(TAG, "status not 'ringing'");
+			final int mr = p.getInt(PREFS_NORMAL_RING, -1);
+			final int mv = p.getInt(PREFS_NORMAL_VIBRATE, -1);
+			if (mr >= 0 && mv >= 0) {
+				final AudioManager amgr = (AudioManager) context
+						.getSystemService(Context.AUDIO_SERVICE);
+				Editor e = p.edit();
+				e.remove(PREFS_NORMAL_RING);
+				e.remove(PREFS_NORMAL_VIBRATE);
+				e.commit();
+				Log.d(TAG, "switch back vibrate mode: " + mv);
+				amgr.setVibrateSetting(AudioManager.VIBRATE_TYPE_RINGER, mv);
+				Log.d(TAG, "switch back ring mode: " + mr);
+				amgr.setRingerMode(mr);
+			}
+			Log.d(TAG, "status not 'ringing' -> exit");
 			return;
 		}
-		final String remote = intent
+		String remote = intent
 				.getStringExtra(TelephonyManager.EXTRA_INCOMING_NUMBER);
 		if (remote == null) {
+			Log.d(TAG, "no remote number -> exit");
 			return;
 		}
-		final SharedPreferences p = PreferenceManager
-				.getDefaultSharedPreferences(context);
-		if (!p.getBoolean(Preferences.PREFS_ENABLE, true)) {
+		Log.d(TAG, "remote number: " + remote);
+		final Pattern pattern = Pattern.compile("[+\\- /[0-9]]+");
+		final Matcher matcher = pattern.matcher(remote);
+		if (matcher.find()) {
+			remote = matcher.group();
+			Log.d(TAG, "remote number: " + remote);
+		}
+		final int mode = p.getInt(Preferences.PREFS_MODE, 0);
+		Log.d(TAG, "mode: " + mode);
+		int mr;
+		int mv;
+		if (mode >= 0 && mode < Preferences.ringModes.length) {
+			mr = Preferences.ringModes[mode];
+			mv = Preferences.vibrateModes[mode];
+		} else {
 			return;
 		}
+		if (mr < 0 || mv < 0) {
+			return;
+		}
+		Log.d(TAG, "ringMode: " + mr);
+		Log.d(TAG, "vibrateMode: " + mv);
 		final String s = p.getString(Preferences.PREFS_DATA, "");
 		if (s == null || s.length() <= 2 * Preferences.SEP.length()) {
 			return;
@@ -60,6 +112,7 @@ public class Receiver extends BroadcastReceiver {
 		final String[] data = s.split(Preferences.SEP);
 		boolean match = false;
 		for (String d : data) {
+			Log.d(TAG, "match number against: " + d);
 			if (d == null) {
 				continue;
 			}
@@ -86,18 +139,29 @@ public class Receiver extends BroadcastReceiver {
 					break;
 				}
 			} else {
-				if (remote.equals(d)) {
+				if (PhoneNumberUtils.compare(remote, d)) {
 					match = true;
 					break;
 				}
 			}
 		}
 		if (!match) {
+			Log.d(TAG, "no match -> exit");
 			return;
 		}
 		// set to ring mode
 		final AudioManager amgr = (AudioManager) context
 				.getSystemService(Context.AUDIO_SERVICE);
-		amgr.setRingerMode(AudioManager.RINGER_MODE_NORMAL);
+		int i = amgr.getRingerMode();
+		amgr.setVibrateSetting(AudioManager.VIBRATE_TYPE_RINGER, mv);
+		amgr.setRingerMode(mr);
+
+		final Editor e = p.edit();
+		Log.d(TAG, "save current state (ring): " + i);
+		e.putInt(PREFS_NORMAL_RING, i);
+		i = amgr.getVibrateSetting(AudioManager.VIBRATE_TYPE_RINGER);
+		Log.d(TAG, "save current state (vibrate): " + i);
+		e.putInt(PREFS_NORMAL_VIBRATE, i);
+		e.commit();
 	}
 }
