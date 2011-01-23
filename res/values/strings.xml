@@ -34,6 +34,7 @@
 	<string name="settings">Preferences</string>
 	<string name="add_">Add</string>
 	<string name="add_number">Add number</string>
+	<string name="contacts">Contacts</string>
 	<string name="list_empty" formatted="false">Add numbers to the list to force the phone ring loud if they call.\n\nWildcards \'%\' are supported at both ends of the number (e.g. %23% matches 12345).</string>
 	<string name="mode_">Set mode when one of these numbers is calling:</string>
 	<string name="ringvibrate">Ring + Vibrate</string>

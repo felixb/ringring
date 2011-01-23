@@ -42,4 +42,5 @@
 	<uses-feature android:name="android.hardware.touchscreen"
 		android:required="false" />
 	<uses-permission android:name="android.permission.READ_PHONE" />
+	<uses-permission android:name="android.permission.READ_CONTACTS" />
 </manifest> 

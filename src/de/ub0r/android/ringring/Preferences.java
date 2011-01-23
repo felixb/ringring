@@ -43,7 +43,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import de.ub0r.android.lib.Log;
+import de.ub0r.android.lib.apis.ContactsWrapper;
 
 /**
  * Set up RingRing.
@@ -51,7 +53,7 @@ import de.ub0r.android.lib.Log;
  * @author flx
  */
 public class Preferences extends ListActivity implements OnClickListener,
-		OnItemClickListener {
+		OnItemClickListener, OnItemLongClickListener {
 
 	/** Dialog: about. */
 	private static final int DIALOG_ABOUT = 0;
@@ -87,6 +89,11 @@ public class Preferences extends ListActivity implements OnClickListener,
 	/** {@link Spinner} holding modes. */
 	private Spinner spModes = null;
 
+	/** Add number at position. */
+	private int addPosition = -1;
+	/** Add number. */
+	private String addNumber = null;
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -100,6 +107,7 @@ public class Preferences extends ListActivity implements OnClickListener,
 
 		this.setListAdapter(this.adapter);
 		this.getListView().setOnItemClickListener(this);
+		this.getListView().setOnItemLongClickListener(this);
 
 		this.findViewById(R.id.add).setOnClickListener(this);
 		this.findViewById(R.id.ok).setOnClickListener(this);
@@ -189,6 +197,11 @@ public class Preferences extends ListActivity implements OnClickListener,
 				this.objects.add(d.trim());
 			}
 		}
+		if (this.addNumber != null) {
+			this.setNumber(this.addPosition, this.addNumber);
+			this.addPosition = -1;
+			this.addNumber = null;
+		}
 		this.adapter.notifyDataSetChanged();
 
 		if (this.objects.isEmpty()) {
@@ -216,6 +229,25 @@ public class Preferences extends ListActivity implements OnClickListener,
 		e.putString(PREFS_DATA, sb.toString());
 		e.putInt(PREFS_MODE, this.spModes.getSelectedItemPosition());
 		e.commit();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected final void onActivityResult(final int requestCode,
+			final int resultCode, final Intent data) {
+		if (data == null || data.getData() == null) {
+			return;
+		}
+		// get number for uri
+		String number = ContactsWrapper.getInstance().getNumber(
+				this.getContentResolver(), data.getData());
+		if (number == null) {
+			number = "???";
+		}
+		this.addNumber = number;
+		this.addPosition = requestCode - 1;
 	}
 
 	/**
@@ -267,6 +299,33 @@ public class Preferences extends ListActivity implements OnClickListener,
 	}
 
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean onItemLongClick(final AdapterView<?> parent,
+			final View view, final int position, final long id) {
+		this.onItemClick(parent, view, position, id);
+		return true;
+	}
+
+	/**
+	 * Set number to adapter.
+	 * 
+	 * @param pos
+	 *            position
+	 * @param number
+	 *            number
+	 */
+	private void setNumber(final int pos, final String number) {
+		if (pos < 0 || pos >= this.objects.size()) {
+			Preferences.this.objects.add(number);
+		} else {
+			Preferences.this.objects.set(pos, number);
+		}
+		Preferences.this.adapter.notifyDataSetChanged();
+	}
+
+	/**
 	 * Add or edit an item.
 	 * 
 	 * @param pos
@@ -291,14 +350,20 @@ public class Preferences extends ListActivity implements OnClickListener,
 						if (number == null || number.length() == 0) {
 							return;
 						}
-						if (pos < 0) {
-							Preferences.this.objects.add(number);
-						} else {
-							Preferences.this.objects.set(pos, number);
-						}
-						Preferences.this.adapter.notifyDataSetChanged();
+						Preferences.this.setNumber(pos, number);
 						Preferences.this.findViewById(R.id.add_hint)
 								.setVisibility(View.GONE);
+					}
+				});
+		b.setNeutralButton(R.string.contacts,
+				new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(final DialogInterface dialog,
+							final int which) {
+						final Intent intent = ContactsWrapper.getInstance()
+								.getPickPhoneIntent();
+						Preferences.this
+								.startActivityForResult(intent, pos + 1);
 					}
 				});
 		b.show();
