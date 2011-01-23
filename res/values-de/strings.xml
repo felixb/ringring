@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+	<!--
+		Copyright (C) 2010-2011 Felix Bechstein
+	-->
+	<!--
+		This file is part of RingRing. This program is free software; you can
+		redistribute it and/or modify it under the terms of the GNU General
+		Public License as published by the Free Software Foundation; either
+		version 3 of the License, or (at your option) any later version.
+	-->
+	<!--
+		This program is distributed in the hope that it will be useful, but
+		WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+		General Public License for more details. You should have received a
+		copy of the GNU General Public License along with this program; If
+		not, see <http://www.gnu.org/licenses/>.
+	-->
+<resources>
+	<string name="author_">Autor:</string>
+	<string name="version_">Version:</string>
+	<string name="license_">Lizenz:</string>
+	<string name="license">GPLv3 - siehe http://www.gnu.org/licenses/gpl-3.0.txt</string>
+	<string name="source_">Sourcescode:</string>
+	<string name="website_">Website:</string>
+	<string name="about_">Über RingRing</string>
+	<string name="about">RingRing kann den Klingelmodus deines Telefons für dich umstellen, wenn bestimmte VIPs anrufen. ;)</string>
+	<string name="dedicated">In Liebe für Susi.</string>
+	<string name="more_">Mehr Apps..</string>
+	<string name="settings">Einstellungen</string>
+	<string name="add_">Hinzufügen</string>
+	<string name="add_number">Nummer hinzufügen</string>
+	<string name="contacts">Kontakte</string>
+	<string name="list_empty" formatted="false">Füge Nummern zu der Liste hinzu für die der Klingelmodus verändert werden soll wenn sie anrufen.\n\nPlatzhalter \'%\' sind an beiden Enden erlaubt (z.B. %23% matcht 12345).</string>
+	<string name="mode_">Ändere den Klingelmodus wenn eine dieser Nummern anruft:</string>
+	<string name="ringvibrate">Klingeln + Vibrieren</string>
+	<string name="ring">Klingeln</string>
+	<string name="vibrate">Vibrieren</string>
+	<string name="silent">Lautlos</string>
+	<string name="disable">Nichts</string>
+	<string-array name="edit_delete">
+		<item>Ändern</item>
+		<item>Löschen</item>
+	</string-array>
+</resources>

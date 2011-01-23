@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Felix Bechstein
+ * Copyright (C) 2010-2011 Felix Bechstein
  * 
  * This file is part of RingRing.
  * 
@@ -24,6 +24,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -36,11 +38,13 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -52,7 +56,7 @@ import de.ub0r.android.lib.apis.ContactsWrapper;
  * 
  * @author flx
  */
-public class Preferences extends ListActivity implements OnClickListener,
+public final class Preferences extends ListActivity implements OnClickListener,
 		OnItemClickListener, OnItemLongClickListener {
 
 	/** Dialog: about. */
@@ -63,28 +67,39 @@ public class Preferences extends ListActivity implements OnClickListener,
 	/** Preference's name: mode. */
 	public static final String PREFS_MODE = "mode";
 	/** Available modes. */
-	public static final int[] ringModes = new int[] {
-			AudioManager.RINGER_MODE_NORMAL, AudioManager.RINGER_MODE_NORMAL,
-			AudioManager.RINGER_MODE_VIBRATE, AudioManager.RINGER_MODE_SILENT,
+	public static final int[] RING_MODES = new int[] {
+			AudioManager.RINGER_MODE_NORMAL, // .
+			AudioManager.RINGER_MODE_NORMAL, // .
+			AudioManager.RINGER_MODE_VIBRATE, // .
+			AudioManager.RINGER_MODE_SILENT, // .
 			-1 };
 	/** Available modes. */
-	public static final int[] vibrateModes = new int[] {
-			AudioManager.VIBRATE_SETTING_ON, AudioManager.VIBRATE_SETTING_OFF,
-			AudioManager.VIBRATE_SETTING_ON, AudioManager.VIBRATE_SETTING_OFF,
+	public static final int[] VIBRATE_MODES = new int[] {
+			AudioManager.VIBRATE_SETTING_ON, // .
+			AudioManager.VIBRATE_SETTING_ONLY_SILENT, // .
+			AudioManager.VIBRATE_SETTING_ONLY_SILENT, // .
+			AudioManager.VIBRATE_SETTING_OFF, // .
 			-1 };
 	/** Array of String Resources for modes. */
-	private static final Integer[] resModes = new Integer[] {
-			R.string.ringvibrate, R.string.ring, R.string.vibrate,
-			R.string.silent, R.string.disable };
+	private static final Integer[] RES_MODES = new Integer[] {
+			R.string.ringvibrate, // .
+			R.string.ring, // .
+			R.string.vibrate, // .
+			R.string.silent, // .
+			R.string.disable };
 	/** Array of String Resources for modes. */
-	private static final String[] strModes = new String[resModes.length];
+	private static final String[] STR_MODES = new String[RES_MODES.length];
 	/** Preference's separator. */
 	public static final String SEP = "~#~";
 
+	/** {@link ContactsWrapper}. */
+	public static final ContactsWrapper CWRAPPER = ContactsWrapper
+			.getInstance();
+
 	/** Objects of this list. */
-	final ArrayList<String> objects = new ArrayList<String>();
+	private final ArrayList<String> objects = new ArrayList<String>();
 	/** Adapter representing the objects. */
-	ArrayAdapter<String> adapter = null;
+	private NumberAdapter adapter = null;
 
 	/** {@link Spinner} holding modes. */
 	private Spinner spModes = null;
@@ -95,6 +110,48 @@ public class Preferences extends ListActivity implements OnClickListener,
 	private String addNumber = null;
 
 	/**
+	 * Adapter to show numbers and resolve names on the fly.
+	 * 
+	 * @author flx
+	 */
+	private final class NumberAdapter extends ArrayAdapter<String> {
+		/** {@link ContentResolver}. */
+		private final ContentResolver cr;
+
+		/**
+		 * Default constructor.
+		 * 
+		 * @param context
+		 *            {@link Context}
+		 * @param numbers
+		 *            list of numbers
+		 */
+		public NumberAdapter(final Context context,
+				final ArrayList<String> numbers) {
+			super(context, android.R.layout.simple_list_item_1, numbers);
+			this.cr = context.getContentResolver();
+		};
+
+		@Override
+		public View getView(final int position, final View convertView,
+				final ViewGroup parent) {
+			final View v = super.getView(position, convertView, parent);
+			final TextView tw = ((TextView) v.findViewById(android.R.id.text1));
+			final String number = Preferences.this.objects.get(position);
+			String name = null;
+			if (!number.contains("%")) {
+				name = CWRAPPER.getNameForNumber(this.cr, number);
+			}
+			if (name != null && name.length() > 0) {
+				tw.setText(name + " <" + number + ">");
+			} else {
+				tw.setText(number);
+			}
+			return v;
+		}
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
@@ -102,8 +159,7 @@ public class Preferences extends ListActivity implements OnClickListener,
 		super.onCreate(savedInstanceState);
 		Log.init(this.getString(R.string.app_name));
 		this.setContentView(R.layout.list_ok_add);
-		this.adapter = new ArrayAdapter<String>(this,
-				android.R.layout.simple_list_item_1, this.objects);
+		this.adapter = new NumberAdapter(this, this.objects);
 
 		this.setListAdapter(this.adapter);
 		this.getListView().setOnItemClickListener(this);
@@ -111,21 +167,21 @@ public class Preferences extends ListActivity implements OnClickListener,
 
 		this.findViewById(R.id.add).setOnClickListener(this);
 		this.findViewById(R.id.ok).setOnClickListener(this);
-		final int l = resModes.length;
+		final int l = RES_MODES.length;
 		for (int i = 0; i < l; i++) {
-			strModes[i] = this.getString(resModes[i]);
+			STR_MODES[i] = this.getString(RES_MODES[i]);
 		}
 
 		this.spModes = (Spinner) this.findViewById(R.id.mode);
 		this.spModes.setAdapter(new ArrayAdapter<String>(this,
-				android.R.layout.simple_spinner_item, strModes));
+				android.R.layout.simple_spinner_item, STR_MODES));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public final boolean onCreateOptionsMenu(final Menu menu) {
+	public boolean onCreateOptionsMenu(final Menu menu) {
 		MenuInflater inflater = this.getMenuInflater();
 		inflater.inflate(R.menu.menu, menu);
 		return true;
@@ -135,7 +191,7 @@ public class Preferences extends ListActivity implements OnClickListener,
 	 * {@inheritDoc}
 	 */
 	@Override
-	public final boolean onOptionsItemSelected(final MenuItem item) {
+	public boolean onOptionsItemSelected(final MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.item_about: // start about dialog
 			this.showDialog(DIALOG_ABOUT);
@@ -158,7 +214,7 @@ public class Preferences extends ListActivity implements OnClickListener,
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected final Dialog onCreateDialog(final int id) {
+	protected Dialog onCreateDialog(final int id) {
 		Dialog d;
 		switch (id) {
 		case DIALOG_ABOUT:
@@ -181,7 +237,7 @@ public class Preferences extends ListActivity implements OnClickListener,
 		final SharedPreferences p = PreferenceManager
 				.getDefaultSharedPreferences(this);
 		final int mode = p.getInt(PREFS_MODE, 0);
-		if (mode >= 0 && mode < vibrateModes.length) {
+		if (mode >= 0 && mode < VIBRATE_MODES.length) {
 			this.spModes.setSelection(mode);
 		} else {
 			this.spModes.setSelection(0);
@@ -235,7 +291,7 @@ public class Preferences extends ListActivity implements OnClickListener,
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected final void onActivityResult(final int requestCode,
+	protected void onActivityResult(final int requestCode,
 			final int resultCode, final Intent data) {
 		if (data == null || data.getData() == null) {
 			return;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010 Felix Bechstein
+ * Copyright (C) 2010-2011 Felix Bechstein
  * 
  * This file is part of RingRing.
  * 
@@ -37,7 +37,7 @@ import de.ub0r.android.lib.Log;
  * 
  * @author flx
  */
-public class Receiver extends BroadcastReceiver {
+public final class Receiver extends BroadcastReceiver {
 	/** Tag for log output. */
 	private static final String TAG = "bc";
 
@@ -94,9 +94,9 @@ public class Receiver extends BroadcastReceiver {
 		Log.d(TAG, "mode: " + mode);
 		int mr;
 		int mv;
-		if (mode >= 0 && mode < Preferences.ringModes.length) {
-			mr = Preferences.ringModes[mode];
-			mv = Preferences.vibrateModes[mode];
+		if (mode >= 0 && mode < Preferences.RING_MODES.length) {
+			mr = Preferences.RING_MODES[mode];
+			mv = Preferences.VIBRATE_MODES[mode];
 		} else {
 			return;
 		}
