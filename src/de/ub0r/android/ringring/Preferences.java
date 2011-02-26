@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
-import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -31,7 +30,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.media.AudioManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Menu;
@@ -45,10 +43,10 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import de.ub0r.android.lib.Log;
+import de.ub0r.android.lib.Market;
 import de.ub0r.android.lib.apis.ContactsWrapper;
 
 /**
@@ -197,13 +195,8 @@ public final class Preferences extends ListActivity implements OnClickListener,
 			this.showDialog(DIALOG_ABOUT);
 			return true;
 		case R.id.item_more:
-			try {
-				this.startActivity(new Intent(Intent.ACTION_VIEW, Uri
-						.parse("market://search?q=pub:\"Felix Bechstein\"")));
-			} catch (ActivityNotFoundException e) {
-				Toast.makeText(this, "missing market application",
-						Toast.LENGTH_LONG).show();
-			}
+			Market.searchApp(this, "Felix+Bechstein",
+					"http://code.google.com/u" + "/felix.bechstein/");
 			return true;
 		default:
 			return false;
